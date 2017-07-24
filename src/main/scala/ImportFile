@@ -1,0 +1,30 @@
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.hive.HiveContext
+
+
+// define main method (Spark entry point)
+object ImportFile {
+  def main(args: Array[String]) {
+
+    // initialise spark context
+    val conf = new SparkConf().setAppName("ImportFileO")
+    val sc = new SparkContext(conf)
+    val hiveContext = new HiveContext(sc)
+
+    if ((args(0) != null) && (args(1) != null)) {
+      val xml = hiveContext.read.format("com.databricks.spark.xml").option("rowTag", args(0)).load(args(1))
+      xml.write.format("parquet").mode("append").saveAsTable("spark_test_table")
+    }
+    else {
+      println("DEFAULT USED PARAMETER MISSING")
+      val xml = hiveContext.read.format("com.databricks.spark.xml").option("rowTag", "V_AG_EXPORT_XML").load("/tmp/V_AG_EXPORT_XML.xml")
+      xml.write.format("parquet").mode("append").saveAsTable("spark_test_table")
+    }
+
+
+    // terminate spark context
+    sc.stop()
+
+  }
+}
